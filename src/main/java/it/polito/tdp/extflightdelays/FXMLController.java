@@ -35,7 +35,19 @@ public class FXMLController {
 
     @FXML
     void doAnalizzaAeroporti(ActionEvent event) {
-    	//TODO
+    	txtResult.clear();
+    	try {
+    		int dMin= Integer.parseInt(this.distanzaMinima.getText());
+    		
+    		String msg=model.creaGrafo(dMin);
+    		txtResult.setText(msg);
+    		
+    		
+    	}catch(NumberFormatException e ){
+    		e.printStackTrace();
+    		txtResult.setText("Inserire un numero intero valido");
+    		
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
