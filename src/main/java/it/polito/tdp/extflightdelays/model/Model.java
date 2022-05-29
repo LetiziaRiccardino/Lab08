@@ -1,9 +1,11 @@
 package it.polito.tdp.extflightdelays.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -12,6 +14,7 @@ import org.jgrapht.graph.SimpleWeightedGraph;
 import it.polito.tdp.extflightdelays.db.ExtFlightDelaysDAO;
 
 public class Model {
+	
 	private SimpleWeightedGraph<Airport, DefaultWeightedEdge> grafo;
 	private Map<Integer, Airport> idMap;
 	private ExtFlightDelaysDAO dao;
@@ -26,29 +29,42 @@ public class Model {
 		grafo = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
 
 		//Aggiungere i vertici
+		for(Airport a :dao.loadAllAirports())
+			idMap.put(a.getId(), a);
 		Graphs.addAllVertices(grafo, idMap.values());
 		
-		for(Rotta rotta : this.getRotte()) {
+		for(Rotta rotta : this.getRotte(distanzaMedia)) {
 			//controllo se esiste già un arco
 			//se esiste, aggiorno il peso
-			DefaultWeightedEdge edge = grafo.getEdge(rotta.getPartenza(), rotta.getArrivo());
-			if(edge == null) {
+			DefaultWeightedEdge arco = grafo.getEdge(rotta.getPartenza(), rotta.getArrivo());
+			if(arco == null) {
 				Graphs.addEdge(grafo, rotta.getPartenza(), rotta.getArrivo(), rotta.getPeso());
 			} else {
-				double peso = grafo.getEdgeWeight(edge);
+				double peso = grafo.getEdgeWeight(arco);
 				double newPeso = (peso + rotta.getPeso())/2;
-				grafo.setEdgeWeight(edge, newPeso);
+				grafo.setEdgeWeight(arco, newPeso);
 			}
 						
 		}
-		return "numero vertici: "+grafo.vertexSet().size()+ "numero archi: "+this.grafo.edgeSet().size();
+		
+		String msg="\n";
+		Set<DefaultWeightedEdge>set= grafo.edgeSet();
+		List<DefaultWeightedEdge>archiOrdinati=new ArrayList<DefaultWeightedEdge>(set);
+		Collections.sort(archiOrdinati, new Ordina(this.grafo));
+		for(DefaultWeightedEdge r: archiOrdinati) {
+			msg+=grafo.getEdgeSource(r).getId()+" "+grafo.getEdgeTarget(r).getId()+" "+grafo.getEdgeWeight(r)+"\n";//r.toString()
+		}
+		return "numero vertici: "+grafo.vertexSet().size()+ "\nnumero archi:"+this.grafo.edgeSet().size()+msg;
 	}
 	
-	public List<Rotta> getRotte(){
+	public List<Rotta> getRotte(int dMin){
 		//uso la classe Rotta per salvare gli archi del grafo con il relativo peso
 		List<Rotta> rotte = new ArrayList<Rotta>();
-		for(DefaultWeightedEdge e : this.grafo.edgeSet()) {
-			rotte.add(new Rotta(this.grafo.getEdgeSource(e), this.grafo.getEdgeTarget(e), this.grafo.getEdgeWeight(e)));
+		for(Flight e : this.dao.loadAllFlights()) {
+			if(e.getDistance()>=dMin) {
+				rotte.add(new Rotta(idMap.get(e.getOriginAirportId()), idMap.get(e.getDestinationAirportId()), e.getDistance()));
+			}
+			
 		}
 		return rotte;
 	}

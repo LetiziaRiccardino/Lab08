@@ -4,8 +4,8 @@ public class Rotta {
 	
 	Airport partenza;
 	Airport arrivo;
-	Double peso;
-	public Rotta(Airport partenza, Airport arrivo, Double peso) {
+	Integer peso;
+	public Rotta(Airport partenza, Airport arrivo, Integer peso) {
 		super();
 		this.partenza = partenza;
 		this.arrivo = arrivo;
@@ -23,12 +23,18 @@ public class Rotta {
 	public void setArrivo(Airport arrivo) {
 		this.arrivo = arrivo;
 	}
-	public Double getPeso() {
+	public Integer getPeso() {
 		return peso;
 	}
-	public void setPeso(Double peso) {
+	public void setPeso(Integer peso) {
 		this.peso = peso;
 	}
+	@Override
+	public String toString() {
+		return "Rotta [partenza=" + partenza + ", arrivo=" + arrivo + ", peso=" + peso + "]";
+	}
+	
+	
 	
 	
 
